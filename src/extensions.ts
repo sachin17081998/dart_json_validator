@@ -4,8 +4,8 @@ let diagCollection: vscode.DiagnosticCollection;
 
 export function activate(context: vscode.ExtensionContext) {
 context.subscriptions.push(registerRunParseCommand(context));
-console.log('Dart JSON Validator (Runner) activated');
-  diagCollection = vscode.languages.createDiagnosticCollection('dart-json-validator');
+console.log('DMT activated');
+  diagCollection = vscode.languages.createDiagnosticCollection('dart-model-tester');
   context.subscriptions.push(diagCollection);
 }
 

@@ -4,9 +4,9 @@ import * as path from 'path';
 
 export function showResultOutput(output: string, success: boolean, context: vscode.ExtensionContext) {
 // OutputChannel
-const channel = vscode.window.createOutputChannel('Dart JSON Validator');
+const channel = vscode.window.createOutputChannel('DMT:Dart Model Tester');
 channel.clear();
-channel.appendLine('--- Dart JSON Validator (Runner) ---');
+channel.appendLine('--- DMT Runner ---');
 channel.appendLine(output);
 channel.show(true);
 

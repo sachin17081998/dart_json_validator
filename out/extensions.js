@@ -6,8 +6,8 @@ const runParseCommand_1 = require("./commands/runParseCommand");
 let diagCollection;
 function activate(context) {
     context.subscriptions.push((0, runParseCommand_1.registerRunParseCommand)(context));
-    console.log('Dart JSON Validator (Runner) activated');
-    diagCollection = vscode.languages.createDiagnosticCollection('dart-json-validator');
+    console.log('DMT activated');
+    diagCollection = vscode.languages.createDiagnosticCollection('dart-model-tester');
     context.subscriptions.push(diagCollection);
 }
 exports.activate = activate;

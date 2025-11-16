@@ -226,7 +226,7 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import { spawn } from "child_process";
 
-const RUNNER_DIR = ".dart_json_validator_runner";
+const RUNNER_DIR = ".dart_model_tester";
 
 function escapeTriple(text: string): string {
   return text.replace(/"""/g, '\\"\\"\\"');
@@ -280,7 +280,7 @@ export async function buildRunnerProject(
     await fs.copyFile(modelFilePath, destModelPath);
 
     const pubspec = `
-name: dart_json_validator_runner
+name: dart_model_tester
 environment:
   sdk: ">=2.12.0 <4.0.0"
 
@@ -300,7 +300,7 @@ dev_dependencies:
     // run build_runner
     await runCmd("dart", ["run", "build_runner", "build", "--delete-conflicting-outputs"], runnerDir);
 
-    importPath = `package:dart_json_validator_runner/${modelFileName.replace(".dart", "")}`;
+    importPath = `package:dart_model_tester/${modelFileName.replace(".dart", "")}`;
   }
 
   // build main.dart

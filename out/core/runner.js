@@ -185,7 +185,7 @@ exports.removeRunnerDir = exports.buildRunnerProject = void 0;
 const fs = require("fs/promises");
 const path = require("path");
 const child_process_1 = require("child_process");
-const RUNNER_DIR = ".dart_json_validator_runner";
+const RUNNER_DIR = ".dart_model_tester";
 function escapeTriple(text) {
     return text.replace(/"""/g, '\\"\\"\\"');
 }
@@ -226,7 +226,7 @@ async function buildRunnerProject(workspaceRoot, modelFilePath, className, jsonT
         const destModelPath = path.join(libDir, modelFileName);
         await fs.copyFile(modelFilePath, destModelPath);
         const pubspec = `
-name: dart_json_validator_runner
+name: dart_model_tester
 environment:
   sdk: ">=2.12.0 <4.0.0"
 
@@ -242,7 +242,7 @@ dev_dependencies:
         await runCmd("dart", ["pub", "get"], runnerDir);
         // run build_runner
         await runCmd("dart", ["run", "build_runner", "build", "--delete-conflicting-outputs"], runnerDir);
-        importPath = `package:dart_json_validator_runner/${modelFileName.replace(".dart", "")}`;
+        importPath = `package:dart_model_tester/${modelFileName.replace(".dart", "")}`;
     }
     // build main.dart
     const mainContent = `

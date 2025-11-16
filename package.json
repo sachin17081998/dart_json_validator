@@ -1,7 +1,7 @@
 {
-    "name": "dart-json-validator-runner",
-    "displayName": "Dart JSON Validator (Runner)",
-    "publisher": "your-name",
+    "name": "dart-model-tester",
+    "displayName": "DMT:Fart Model Tester",
+    "publisher": "Aachi Kumar Singh",
     "version": "0.0.1",
     "engines": {
         "vscode": "^1.60.0"
@@ -15,7 +15,7 @@
         "commands": [
             {
                 "command": "dartJsonValidator.runParse",
-                "title": "Dart: Parse JSON with model (run)"
+                "title": "DMT: Test Dart Model with JSON"
             }
         ]
     },

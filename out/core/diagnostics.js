@@ -4,7 +4,7 @@ exports.createDiagnostics = void 0;
 const vscode = require("vscode");
 const path = require("path");
 function createDiagnostics(context, workspaceRoot, output) {
-    const diagCollection = vscode.languages.createDiagnosticCollection("dart-json-validator");
+    const diagCollection = vscode.languages.createDiagnosticCollection("dart-model-tester");
     context.subscriptions.push(diagCollection);
     // Clear previous diagnostics
     diagCollection.clear();

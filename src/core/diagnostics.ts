@@ -7,7 +7,7 @@ export function createDiagnostics(
   output: string
 ) {
   const diagCollection = vscode.languages.createDiagnosticCollection(
-    "dart-json-validator"
+    "dart-model-tester"
   );
   context.subscriptions.push(diagCollection);
 
