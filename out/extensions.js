@@ -1,21 +1,24 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleRunnerOutput = exports.deactivate = exports.activate = void 0;
+;
+const validatorViewProvider_1 = require("./views/validatorViewProvider");
 const vscode = require("vscode");
-const runParseCommand_1 = require("./commands/runParseCommand");
 let diagCollection;
 function activate(context) {
-    context.subscriptions.push((0, runParseCommand_1.registerRunParseCommand)(context));
-    console.log('DMT activated');
-    diagCollection = vscode.languages.createDiagnosticCollection('dart-model-tester');
-    context.subscriptions.push(diagCollection);
+    const provider = new validatorViewProvider_1.ValidatorViewProvider(context);
+    context.subscriptions.push(vscode.window.registerWebviewViewProvider(validatorViewProvider_1.ValidatorViewProvider.viewType, provider));
+    // Optional: Show view on startup
+    setTimeout(() => {
+        vscode.commands.executeCommand('workbench.view.extension.dartJsonValidator');
+    }, 1000);
 }
 exports.activate = activate;
 function deactivate() { }
 exports.deactivate = deactivate;
 function handleRunnerOutput(output) {
     // Clear old diagnostics
-    diagCollection.clear();
+    // diagCollection.clear();
     const stackStart = output.indexOf("STACKTRACE_START");
     const stackEnd = output.indexOf("STACKTRACE_END");
     if (stackStart === -1 || stackEnd === -1)
@@ -31,7 +34,7 @@ function handleRunnerOutput(output) {
         const col = parseInt(colStr) - 1;
         const uri = vscode.Uri.parse(fileUri);
         const diagnostic = new vscode.Diagnostic(new vscode.Range(new vscode.Position(line, col), new vscode.Position(line, col + 1)), "JSON parsing failed here", vscode.DiagnosticSeverity.Error);
-        diagCollection.set(uri, [diagnostic]);
+        // diagCollection.set(uri, [diagnostic]);
     }
 }
 exports.handleRunnerOutput = handleRunnerOutput;

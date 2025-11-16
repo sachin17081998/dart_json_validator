@@ -1,19 +1,31 @@
-import * as vscode from 'vscode';
+;
 import { registerRunParseCommand } from './commands/runParseCommand';
-let diagCollection: vscode.DiagnosticCollection;
+import { ValidatorViewProvider } from "./views/validatorViewProvider";
+import * as vscode from 'vscode';
 
+
+let diagCollection: vscode.DiagnosticCollection;
 export function activate(context: vscode.ExtensionContext) {
-context.subscriptions.push(registerRunParseCommand(context));
-console.log('DMT activated');
-  diagCollection = vscode.languages.createDiagnosticCollection('dart-model-tester');
-  context.subscriptions.push(diagCollection);
+  const provider = new ValidatorViewProvider(context);
+
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(
+      ValidatorViewProvider.viewType,
+      provider
+    )
+  );
+
+  // Optional: Show view on startup
+  setTimeout(() => {
+    vscode.commands.executeCommand('workbench.view.extension.dartJsonValidator');
+  }, 1000);
 }
 
 export function deactivate() {}
 
 export function handleRunnerOutput(output: string) {
   // Clear old diagnostics
-  diagCollection.clear();
+  // diagCollection.clear();
 
   const stackStart = output.indexOf("STACKTRACE_START");
   const stackEnd = output.indexOf("STACKTRACE_END");
@@ -42,6 +54,6 @@ export function handleRunnerOutput(output: string) {
       vscode.DiagnosticSeverity.Error
     );
 
-    diagCollection.set(uri, [diagnostic]);
+    // diagCollection.set(uri, [diagnostic]);
   }
 }

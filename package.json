@@ -1,37 +1,58 @@
 {
-    "name": "dart-model-tester",
-    "displayName": "DMT:Fart Model Tester",
-    "publisher": "Aachi Kumar Singh",
-    "version": "0.0.1",
-    "engines": {
-        "vscode": "^1.60.0"
-    },
-    "main": "./out/extensions.js",
-    "activationEvents": [
-        "onStartupFinished",
-        "onCommand:dartJsonValidator.runParse"
-    ],
-    "contributes": {
-        "commands": [
-            {
-                "command": "dartJsonValidator.runParse",
-                "title": "DMT: Test Dart Model with JSON"
-            }
-        ]
-    },
-    "scripts": {
-        "vscode:prepublish": "npm run compile",
-        "compile": "tsc -p ./",
-        "watch": "tsc -w -p ./",
-        "pretest": "npm run compile",
-        "test": "mocha -r ts-node/register test/**/*.spec.ts"
-    },
-    "devDependencies": {
-        "@types/node": "^16.18.126",
-        "chai": "^4.0.0",
-        "mocha": "^9.0.0",
-        "ts-node": "^10.0.0",
-        "typescript": "^4.0.0",
-        "vscode": "^1.1.36"
+  "name": "dart-model-tester",
+  "displayName": "DMT: Dart Model Tester",
+  "description": "Test if your Dart class can parse JSON responses",
+  "publisher": "SachinKumarSingh",
+  "version": "0.0.1",
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "main": "./out/extensions.js",
+  "activationEvents": [
+    "onView:dartJsonValidatorView",
+  "onCommand:dmt.start"
+  ],
+  "contributes": {
+    "colors": [
+    {
+      "id": "dmt.primary",
+      "description": "DMT Primary Color",
+      "defaults": { "dark": "#0288D1", "light": "#0288D1" }
     }
+  ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "dartJsonValidator",
+          "title": "DMT",
+          "icon": "media/dmt-50.png"
+        }
+      ]
+    },
+    "views": {
+      "dartJsonValidator": [
+        {
+          "type": "webview",
+          "id": "dartJsonValidatorView",
+          "name": "Validator"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "test": "mocha -r ts-node/register test/**/*.spec.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^16.18.126",
+    "@types/vscode": "^1.75.0",
+    "chai": "^4.0.0",
+    "mocha": "^9.0.0",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.9.0"
+  }
 }
