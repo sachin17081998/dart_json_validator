@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ValidatorViewProvider = void 0;
-// validatorViewProvider.ts
 const vscode = require("vscode");
 const runner_1 = require("../core/runner");
 const processRunner_1 = require("../core/processRunner");
 const path = require("path");
+const reporter_1 = require("../core/reporter");
 class ValidatorViewProvider {
     constructor(context) {
         this.context = context;
@@ -30,27 +30,46 @@ class ValidatorViewProvider {
                 }
             }
             if (msg.type === "run") {
+                const workspaceFolders = vscode.workspace.workspaceFolders;
+                if (!workspaceFolders) {
+                    return this.postError("Open a workspace first.");
+                }
+                const workspaceRoot = workspaceFolders[0].uri.fsPath;
                 try {
-                    const workspaceFolders = vscode.workspace.workspaceFolders;
-                    if (!workspaceFolders) {
-                        return this.postError("Open a workspace first.");
-                    }
-                    const workspaceRoot = workspaceFolders[0].uri.fsPath;
                     const { jsonText, className, modelPath } = msg;
                     if (!modelPath) {
                         return this.postError("No model file selected.");
                     }
                     const mainPath = await (0, runner_1.buildRunnerProject)(workspaceRoot, modelPath, className, jsonText, true);
                     const result = await (0, processRunner_1.runDartFile)(mainPath, path.dirname(mainPath));
-                    await (0, runner_1.removeRunnerDir)(workspaceRoot);
-                    webviewView.webview.postMessage({
-                        type: "runResult",
-                        output: result.output,
-                        exitCode: result.exitCode,
-                    });
+                    if (result.output.includes('ERROR')) {
+                        var errorMessage = '';
+                        const errorKey = await (0, reporter_1.processErrorOutput)(result.output, path.join(workspaceRoot, ".dart_model_tester"));
+                        if (typeof errorKey === "string" && errorKey.trim().length > 0) {
+                            errorMessage = `\n Failed to parse the JSON with the given model. \n \n'${errorKey}' \n \n \n ${result.output}`;
+                        }
+                        else {
+                            errorMessage = 'Unexpected Error during parsing.\n' + result.output;
+                        }
+                        webviewView.webview.postMessage({
+                            type: "runResult",
+                            output: errorMessage,
+                            exitCode: result.exitCode,
+                        });
+                    }
+                    else {
+                        webviewView.webview.postMessage({
+                            type: "runResult",
+                            output: result.output,
+                            exitCode: result.exitCode,
+                        });
+                    }
                 }
                 catch (err) {
-                    this.postError(err?.message ?? String(err));
+                    this.postError(err.message ?? String(err));
+                }
+                finally {
+                    await (0, runner_1.removeRunnerDir)(workspaceRoot);
                 }
             }
         });
@@ -199,7 +218,7 @@ class ValidatorViewProvider {
   <input type="text" id="className" placeholder="e.g. User" />
 
   <button id="runBtn">
-    <span class="btn-content" id="runText">Run Validation</span>
+    <span class="btn-content" id="runText">Validate Json</span>
   </button>
 
   <div id="output"></div>
@@ -244,7 +263,7 @@ class ValidatorViewProvider {
     function stopLoading() {
       isRunning = false;
       runBtn.disabled = false;
-      runText.innerHTML = 'Run Validation';
+      runText.innerHTML = 'Validate Json';
     }
 
     function showError(msg) {

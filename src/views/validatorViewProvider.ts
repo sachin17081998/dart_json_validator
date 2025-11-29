@@ -1,14 +1,15 @@
-// validatorViewProvider.ts
+
 import * as vscode from "vscode";
 import { buildRunnerProject, removeRunnerDir } from "../core/runner";
 import { runDartFile } from "../core/processRunner";
 import * as path from "path";
+import { processErrorOutput } from "../core/reporter";
 
 export class ValidatorViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = "dartJsonValidatorView";
   private _webviewView?: vscode.WebviewView;
 
-  constructor(private context: vscode.ExtensionContext) {}
+  constructor(private context: vscode.ExtensionContext) { }
 
   resolveWebviewView(webviewView: vscode.WebviewView) {
     this._webviewView = webviewView;
@@ -33,13 +34,15 @@ export class ValidatorViewProvider implements vscode.WebviewViewProvider {
       }
 
       if (msg.type === "run") {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders) {
+          return this.postError("Open a workspace first.");
+        }
+        const workspaceRoot = workspaceFolders[0].uri.fsPath;
         try {
-          const workspaceFolders = vscode.workspace.workspaceFolders;
-          if (!workspaceFolders) {
-            return this.postError("Open a workspace first.");
-          }
 
-          const workspaceRoot = workspaceFolders[0].uri.fsPath;
+
+
           const { jsonText, className, modelPath } = msg;
 
           if (!modelPath) {
@@ -55,15 +58,38 @@ export class ValidatorViewProvider implements vscode.WebviewViewProvider {
           );
 
           const result = await runDartFile(mainPath, path.dirname(mainPath));
-          await removeRunnerDir(workspaceRoot);
+          if (result.output.includes('ERROR')) {
 
-          webviewView.webview.postMessage({
-            type: "runResult",
-            output: result.output,
-            exitCode: result.exitCode,
-          });
+            var errorMessage = '';
+
+            const errorKey = await processErrorOutput(result.output, path.join(workspaceRoot, ".dart_model_tester"));
+            if (typeof errorKey === "string" && errorKey.trim().length > 0) {
+              errorMessage = `\nFailed to parse the JSON with the given model.\n \n'${errorKey}'\n \n \n${result.output}`;
+            } else {
+              errorMessage = 'Unexpected Error during parsing.\n' + result.output;
+            }
+
+            webviewView.webview.postMessage({
+              type: "runResult",
+              output: errorMessage,
+              exitCode: result.exitCode,
+            });
+          } else {
+            webviewView.webview.postMessage({
+              type: "runResult",
+              output: result.output,
+              exitCode: result.exitCode,
+            });
+          }
+
+
+
         } catch (err: any) {
-          this.postError(err?.message ?? String(err));
+
+          this.postError(err.message ?? String(err));
+        } finally {
+
+          await removeRunnerDir(workspaceRoot);
         }
       }
     });
@@ -74,7 +100,7 @@ export class ValidatorViewProvider implements vscode.WebviewViewProvider {
   }
 
   private getHtml() {
-    return  `<!DOCTYPE html>
+    return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
@@ -214,7 +240,7 @@ export class ValidatorViewProvider implements vscode.WebviewViewProvider {
   <input type="text" id="className" placeholder="e.g. User" />
 
   <button id="runBtn">
-    <span class="btn-content" id="runText">Run Validation</span>
+    <span class="btn-content" id="runText">Validate Json</span>
   </button>
 
   <div id="output"></div>
@@ -259,7 +285,7 @@ export class ValidatorViewProvider implements vscode.WebviewViewProvider {
     function stopLoading() {
       isRunning = false;
       runBtn.disabled = false;
-      runText.innerHTML = 'Run Validation';
+      runText.innerHTML = 'Validate Json';
     }
 
     function showError(msg) {
@@ -294,3 +320,4 @@ export class ValidatorViewProvider implements vscode.WebviewViewProvider {
 
   }
 }
+

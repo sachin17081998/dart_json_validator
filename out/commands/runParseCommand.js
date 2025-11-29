@@ -4,7 +4,6 @@ exports.registerRunParseCommand = void 0;
 const vscode = require("vscode");
 const runner_1 = require("../core/runner");
 const processRunner_1 = require("../core/processRunner");
-const reporter_1 = require("../core/reporter");
 const diagnostics_1 = require("../core/diagnostics");
 const extensions_1 = require("../extensions");
 const fs = require("fs/promises");
@@ -60,7 +59,7 @@ function registerRunParseCommand(context) {
         // parse and show diagnostics
         (0, diagnostics_1.createDiagnostics)(context, workspaceRoot, res.output);
         // show output
-        (0, reporter_1.showResultOutput)(res.output, res.exitCode === 0, context);
+        // showResultOutput(res.output);
         // optionally cleanup
         try {
             await (0, runner_1.removeRunnerDir)(workspaceRoot);

@@ -1,10 +1,7 @@
-;
-import { registerRunParseCommand } from './commands/runParseCommand';
 import { ValidatorViewProvider } from "./views/validatorViewProvider";
 import * as vscode from 'vscode';
 
 
-let diagCollection: vscode.DiagnosticCollection;
 export function activate(context: vscode.ExtensionContext) {
   const provider = new ValidatorViewProvider(context);
 
@@ -23,37 +20,36 @@ export function activate(context: vscode.ExtensionContext) {
 
 export function deactivate() {}
 
-export function handleRunnerOutput(output: string) {
-  // Clear old diagnostics
-  // diagCollection.clear();
+// export function handleRunnerOutput(output: string) {
 
-  const stackStart = output.indexOf("STACKTRACE_START");
-  const stackEnd = output.indexOf("STACKTRACE_END");
 
-  if (stackStart === -1 || stackEnd === -1) return;
+//   const stackStart = output.indexOf("STACKTRACE_START");
+//   const stackEnd = output.indexOf("STACKTRACE_END");
 
-  const trace = output.substring(stackStart + 17, stackEnd).trim();
-  const frames = trace.split("\n");
+//   if (stackStart === -1 || stackEnd === -1) return;
 
-  for (const frame of frames) {
-    const match = frame.match(/\((file:\/\/\/.+?):(\d+):(\d+)\)/);
-    if (!match) continue;
+//   const trace = output.substring(stackStart + 17, stackEnd).trim();
+//   const frames = trace.split("\n");
 
-    const [, fileUri, lineStr, colStr] = match;
-    const line = parseInt(lineStr) - 1;
-    const col = parseInt(colStr) - 1;
+//   for (const frame of frames) {
+//     const match = frame.match(/\((file:\/\/\/.+?):(\d+):(\d+)\)/);
+//     if (!match) continue;
 
-    const uri = vscode.Uri.parse(fileUri);
+//     const [, fileUri, lineStr, colStr] = match;
+//     const line = parseInt(lineStr) - 1;
+//     const col = parseInt(colStr) - 1;
 
-    const diagnostic = new vscode.Diagnostic(
-      new vscode.Range(
-        new vscode.Position(line, col),
-        new vscode.Position(line, col + 1)
-      ),
-      "JSON parsing failed here",
-      vscode.DiagnosticSeverity.Error
-    );
+//     const uri = vscode.Uri.parse(fileUri);
 
-    // diagCollection.set(uri, [diagnostic]);
-  }
-}
+//     const diagnostic = new vscode.Diagnostic(
+//       new vscode.Range(
+//         new vscode.Position(line, col),
+//         new vscode.Position(line, col + 1)
+//       ),
+//       "JSON parsing failed here",
+//       vscode.DiagnosticSeverity.Error
+//     );
+
+//     // diagCollection.set(uri, [diagnostic]);
+//   }
+// }

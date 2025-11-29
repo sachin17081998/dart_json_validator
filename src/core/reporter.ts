@@ -1,22 +1,41 @@
-import * as vscode from 'vscode';
+
 import * as path from 'path';
+import * as fs from "fs/promises";
 
+async function extractJsonKey(filePath: string, line: number, column: number): Promise<string | null> {
+  const content = await fs.readFile(filePath, "utf8");
+  const lines = content.split(/\r?\n/);
 
-export function showResultOutput(output: string, success: boolean, context: vscode.ExtensionContext) {
-// OutputChannel
-const channel = vscode.window.createOutputChannel('DMT:Dart Model Tester');
-channel.clear();
-channel.appendLine('--- DMT Runner ---');
-channel.appendLine(output);
-channel.show(true);
+  if (line < 1 || line > lines.length) return null;
 
-
-// Webview summary
-const panel = vscode.window.createWebviewPanel('dartJsonRunResult', 'Dart JSON Parser Result', vscode.ViewColumn.One, { enableScripts: false });
-const safe = escapeHtml(output);
-const status = success ? 'SUCCESS' : 'ERROR';
-panel.webview.html = `<!doctype html><html><body><h2>${status}</h2><pre>${safe}</pre></body></html>`;
+  const targetLine = lines[line - 1];
+  if(targetLine !== undefined && targetLine.length>0) return targetLine.trim();
+  
+  return null;
 }
 
+export async function processErrorOutput(output: string, tempDir: string) {
+  const regex = /package:dart_model_tester\/(.+):(\d+):(\d+)/g;
 
-function escapeHtml(s: string) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  let match;
+  while ((match = regex.exec(output))) {
+    const [, relativePath, lineStr, colStr] = match;
+
+    const line = parseInt(lineStr, 10);
+    const col = parseInt(colStr, 10);
+
+    const filePath = path.join(tempDir, "lib", relativePath);
+
+    try {
+      const key = await extractJsonKey(filePath, line, col);
+
+      if (key) {
+       return`Failure Point: ${key}`;
+      } else {
+        return`Error at \n ${relativePath}:${line}:${col}`;
+      }
+    } catch (e) {
+      return`Error locating ${relativePath}:${line}:${col}`;
+    }
+  }
+}
