@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        :root {
+            --primary: #0288D1;
+            --text: #FFFFFF;
+            --bg: var(--vscode-editor-background);
+            --border: var(--vscode-editorWidget-border);
+        }
+
+        body {
+            font-family: var(--vscode-font-family, 'Segoe UI', sans-serif);
+            padding: 14px;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        h3 {
+            margin: 0 0 16px 0;
+            font-size: 1.3em;
+            color: var(--text);
+        }
+
+        label {
+            font-weight: 600;
+            display: block;
+            margin-top: 14px;
+            color: #FFFFFF;
+            font-size: 0.95em;
+        }
+
+        textarea,
+        input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 6px;
+            padding: 8px 10px;
+            background: transparent !important;
+            border: 1.5px solid var(--primary);
+            border-radius: 4px;
+            color: #FFFFFF !important;
+            font-family: var(--vscode-editor-font-family, monospace);
+            font-size: 0.95em;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        textarea:focus,
+        input[type="text"]:focus {
+            border-color: #29B6F6;
+            box-shadow: 0 0 0 1px #29B6F6;
+        }
+
+        button {
+            margin-top: 16px;
+            width: 100%;
+            padding: 10px;
+            background: var(--primary);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover:not(:disabled) {
+            background: #0277BD;
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            background: #01579B;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .path {
+            margin-top: 6px;
+            font-size: 0.85em;
+            color: #B0BEC5;
+            word-break: break-all;
+            font-style: italic;
+        }
+
+        #output {
+            margin-top: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #FFFFFF;
+            padding: 12px;
+            height: 160px;
+            overflow: auto;
+            font-family: var(--vscode-editor-font-family, monospace);
+            font-size: 0.9em;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #FFFFFF;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .btn-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body>
+    <h3>DMT: Dart Model Tester</h3>
+
+    <label>JSON Input:</label>
+    <textarea id="json" placeholder='Paste your JSON here...'></textarea>
+
+    <label>Dart Class:</label>
+    <textarea id="dartClass" placeholder='Paste your Dart Class here...'></textarea>
+
+
+    <label>Class Name:</label>
+    <input type="text" id="className" placeholder="e.g. User" />
+
+    <button id="runBtn">
+        <span class="btn-content" id="runText">Validate Json</span>
+    </button>
+
+    <div id="output"></div>
+
+    <script>
+        const vscode = acquireVsCodeApi();
+        let modelPath = '';
+        let isRunning = false;
+
+        const runBtn = document.getElementById('runBtn');
+
+
+        runBtn.onclick = () => {
+            if (isRunning) return;
+
+
+            const dartClass = document.getElementById('dartClass').value.trim();
+            const json = document.getElementById('json').value.trim();
+            const className = document.getElementById('className').value.trim();
+
+            if (!json) return showError("Please enter JSON");
+            if (!className) return showError("Please enter class name");
+            if (!dartClass) return showError("Please provide the Dart Class");
+            startLoading();
+            vscode.postMessage({
+                type: "run",
+                jsonText: json,
+                className: className,
+                dartClass: dartClass
+            });
+        };
+
+        function startLoading() {
+            isRunning = true;
+            runBtn.disabled = true;
+            runText.innerHTML = '<div class="loader"></div>Validating...';
+        }
+
+        function stopLoading() {
+            isRunning = false;
+            runBtn.disabled = false;
+            runText.innerHTML = 'Validate Json';
+        }
+
+        function showError(msg) {
+            alert(msg);
+        }
+
+        window.addEventListener('message', event => {
+            const msg = event.data;
+
+
+            if (msg.type === 'runResult') {
+                stopLoading();
+                const output = document.getElementById('output');
+                output.textContent = msg.output || 'Success! JSON parsed successfully.';
+                output.style.color = msg.exitCode === 0 ? '#90EE90' : '#FF6B6B';
+            }
+
+            if (msg.type === 'error') {
+                stopLoading();
+                const output = document.getElementById('output');
+                output.textContent = 'ERROR: ' + msg.message;
+                output.style.color = '#FF6B6B';
+            }
+        });
+    </script>
+</body>
+
+</html>
